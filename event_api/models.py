@@ -30,6 +30,16 @@ class UserGoingEvent(models.Model):
   event_obj = models.ForeignKey(EventDetail, on_delete=models.CASCADE)
 
 
+# EventDetail.objects.create(
+#   event_title='testing two',
+#   park_name='David Crombie Park Basketball Court',
+#   park_address='testing',
+#   event_description='Tesing desc one. Tesing desc one. Tesing desc one. Tesing desc one. Tesing desc one.',
+#   event_date='2022-01-01',
+#   event_time='18:00',
+#   user_obj=user_objects[0]  
+# )
+
 
 
 

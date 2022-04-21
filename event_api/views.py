@@ -18,7 +18,7 @@ park_address_info = {
   'Kipling Parkette': '7550 Kipling Avenue, Woodbridge, ON',
   'Smithfield Park': '173 Mt Olive Dr, Etobicoke, ON',
   'Waterfront Neighbourhood Centre': '627 Queens Quay W, Toronto, ON',
-  'David Crombie Park Basketball Court': '115 Scadding Ave, Toronto, ON',
+  'David Crombie Park': '115 Scadding Ave, Toronto, ON',
   'Underpass Park': '29 Lower River Street, Toronto, ON',
   'Flagstaff Park': '42 Mercury Rd, Etobicoke, ON',
   'Indian Line Park': '655 HUMBERWOOD BLVD',
@@ -185,6 +185,7 @@ def get_events(request):
   event_objects = EventDetail.objects.all()
   user_going_objects = UserGoingEvent.objects.all()
 
+  event_id_dict = {}
   final_list = []
   for ev_obj in event_objects:
     user_going_objects = UserGoingEvent.objects.filter(event_obj=ev_obj)
@@ -198,7 +199,8 @@ def get_events(request):
 
     final_di = {
       'event_id': ev_obj.id,
-      'event_name': ev_obj.event_title, 
+      'event_name': ev_obj.event_title.capitalize(), 
+      'event_description': ev_obj.event_description, 
       'park_name': ev_obj.park_name,
       'park_address': ev_obj.park_address,
       'event_date': ev_obj.event_date,
@@ -206,8 +208,10 @@ def get_events(request):
       'user_going_list': user_going_list
     }
     final_list.append(final_di)
+    event_id_dict[ev_obj.id] = final_di
 
-  return JsonResponse({'data': final_list})
+  # print('final-list:', event_id_dict)
+  return JsonResponse({'data': final_list, 'event_id_dict': [event_id_dict]})
 
 
     
