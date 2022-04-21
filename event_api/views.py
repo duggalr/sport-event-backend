@@ -51,6 +51,7 @@ time_mapping = {
   '9:00': '21:00'
 }
 
+reverse_time_mapping = {v: k for k, v in time_mapping.items()}
 
 
 
@@ -176,6 +177,9 @@ def create_event(request):
     return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
 
+# TODO: 
+  # for user-going table, ensure same user is not 'going-twice' for same event 
+
 
 def get_events(request):
   event_objects = EventDetail.objects.all()
@@ -186,14 +190,19 @@ def get_events(request):
     user_going_objects = UserGoingEvent.objects.filter(event_obj=ev_obj)
     user_going_list = []
     for ug_obj in user_going_objects:
-      user_going_list.append({'profile_picture': ug_obj.user_obj.profile_picture_url, 'name': ug_obj.user_obj.full_name})
+      user_going_list.append({'ug_id': ug_obj.id, 'profile_picture': ug_obj.user_obj.profile_picture_url, 'name': ug_obj.user_obj.full_name})
     
+    orig_event_time = ev_obj.event_time
+    st_orig_event_time = orig_event_time.strftime("%H:%M")
+    event_time_st = reverse_time_mapping[st_orig_event_time] + 'PM'
+
     final_di = {
+      'event_id': ev_obj.id,
       'event_name': ev_obj.event_title, 
       'park_name': ev_obj.park_name,
       'park_address': ev_obj.park_address,
       'event_date': ev_obj.event_date,
-      'event_time': ev_obj.event_time,
+      'event_time': event_time_st,
       'user_going_list': user_going_list
     }
     final_list.append(final_di)
