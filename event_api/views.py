@@ -9,7 +9,7 @@ import json
 from django.http import JsonResponse
 
 from . import utils
-from .models import UserProfile, EventDetail
+from .models import UserProfile, EventDetail, UserGoingEvent
 
 
 
@@ -99,7 +99,7 @@ def auth_signup(request):
           )
           u.save()
           return JsonResponse({'success': True})
-          
+
         else: 
           return JsonResponse({'success': False, 'reason': 'invalid data sent.'})      
 
@@ -125,11 +125,16 @@ def create_event(request):
     if 'access_token' in json_data:
       user_access_token = json_data['access_token']
       access_token_res = utils.get_user_info(user_access_token)
+      print('access token check...')
+
       if 'error' not in access_token_res:
         # just assuming all the required fields in request
         user_profile_id = access_token_res['sub']
         user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
-        if len(user_objects) == 1: 
+
+        print('access token error...', len(user_objects))
+        
+        if len(user_objects) == 1:
           event_title = json_data['event_title']
           event_desc = json_data['event_description']
           park_name = json_data['park_name']
@@ -137,7 +142,7 @@ def create_event(request):
           event_date = json_data['event_date'].split('T')[0]
           event_time = json_data['event_time']
           time_str_repres = time_mapping[event_time]
-          time_dt_repres = datetime.datetime.strptime(time_str_repres, '%H:%M:%S').time()
+          time_dt_repres = datetime.datetime.strptime(time_str_repres, '%H:%M').time()
 
           ed = EventDetail.objects.create(
             event_title = event_title,
@@ -149,6 +154,12 @@ def create_event(request):
             user_obj = user_objects[0]
           )
           ed.save()
+
+          ug = UserGoingEvent.objects.create(
+            user_obj = user_objects[0],
+            event_obj = ed
+          )
+          ug.save()
 
           return JsonResponse({'success': True})
 
@@ -166,7 +177,31 @@ def create_event(request):
 
 
 
+def get_events(request):
+  event_objects = EventDetail.objects.all()
+  user_going_objects = UserGoingEvent.objects.all()
 
+  final_list = []
+  for ev_obj in event_objects:
+    user_going_objects = UserGoingEvent.objects.filter(event_obj=ev_obj)
+    user_going_list = []
+    for ug_obj in user_going_objects:
+      user_going_list.append({'profile_picture': ug_obj.user_obj.profile_picture_url, 'name': ug_obj.user_obj.full_name})
+    
+    final_di = {
+      'event_name': ev_obj.event_title, 
+      'park_name': ev_obj.park_name,
+      'park_address': ev_obj.park_address,
+      'event_date': ev_obj.event_date,
+      'event_time': ev_obj.event_time,
+      'user_going_list': user_going_list
+    }
+    final_list.append(final_di)
+
+  return JsonResponse({'data': final_list})
+
+
+    
 
 
 
