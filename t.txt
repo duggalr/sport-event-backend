@@ -1,10 +1,35 @@
-google-user-info: {"idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImQzMzJhYjU0NWNjMTg5ZGYxMzNlZmRkYjNhNmM0MDJlYmY0ODlhYzIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI3NzAwOTU1NDc3MzYtNmcwZTdubWZqNzJna2k0cGlldTl2NGQzc2k3cDU1bTcuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI3NzAwOTU1NDc3MzYtN2txMGVudDZxdGNwdTFyZjczMWJrdmhtc2M3Y3BnNDYuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTU4NzE1MTk2NDIzMDU4MjQ1NjAiLCJlbWFpbCI6ImR1Z2dhbHI0MkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IlJhaHVsIER1Z2dhbCIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQVRYQUp3RmpHUjJKLTVsQXZ2eDYzM0Y5Qnd1QTRXN2tYMXUwc2JtLVQ2NT1zOTYtYyIsImdpdmVuX25hbWUiOiJSYWh1bCIsImZhbWlseV9uYW1lIjoiRHVnZ2FsIiwibG9jYWxlIjoiZW4iLCJpYXQiOjE2NTAzMjk5NDksImV4cCI6MTY1MDMzMzU0OX0.o6bAVuuOl4ByHvi3IjWwJzdme_ueuCWlewy4UF9ZyqX3DgU2N7N2ZxvUupL49IuWx6W04f9R_gu5En6vE5GFgxZggPjKiHJI8sjuyRTymwbxVz8HYk65LbfEHlw5fElNZAYCjKTaj8zqIrr7lk1anSqW3uowN_g78cSB2ByokSZD9fk5mxzg35DFw9cUENfOI_HTquAvad7CW4mfSeSImzj-bChrg6eI-71gW6PpN5L23DY-RwgUqZonGRvmMwmwlBh-Y26moxuUrJK-e4ygoOWPl0g3An_iHu4Vo-AuD0kUc84htaHQx5ir29Fsy8n-rKYdZyoX-hh4j4H3_IVYRA", "scopes": ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"], "serverAuthCode": null, "user": {"email": "duggalr42@gmail.com", "familyName": "Duggal", "givenName": "Rahul", "id": "115871519642305824560", "name": "Rahul Duggal", "photo": "https://lh3.googleusercontent.com/a/AATXAJwFjGR2J-5lAvvx633F9BwuA4W7kX1u0sbm-T65=s96-c"}}
-google-token-data: {"accessToken": "ya29.A0ARrdaM9e3h6BWQKv9MAMj8zX3f07_zjn3IF0JjiVwcp17oDtydpKaUjME1k31Tcz8IGhejGRjRaiGdx8FMQqznNzQyck9lIB-q_GXaJOAqDnS9k-wRekvyTLsyIhYxjTvAkxB2Y_H7ODWplWig9-O5EEzmmM9g", "idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImQzMzJhYjU0NWNjMTg5ZGYxMzNlZmRkYjNhNmM0MDJlYmY0ODlhYzIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI3NzAwOTU1NDc3MzYtNmcwZTdubWZqNzJna2k0cGlldTl2NGQzc2k3cDU1bTcuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI3NzAwOTU1NDc3MzYtN2txMGVudDZxdGNwdTFyZjczMWJrdmhtc2M3Y3BnNDYuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTU4NzE1MTk2NDIzMDU4MjQ1NjAiLCJlbWFpbCI6ImR1Z2dhbHI0MkBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6IlJhaHVsIER1Z2dhbCIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS9BQVRYQUp3RmpHUjJKLTVsQXZ2eDYzM0Y5Qnd1QTRXN2tYMXUwc2JtLVQ2NT1zOTYtYyIsImdpdmVuX25hbWUiOiJSYWh1bCIsImZhbWlseV9uYW1lIjoiRHVnZ2FsIiwibG9jYWxlIjoiZW4iLCJpYXQiOjE2NTAzMjk5NDksImV4cCI6MTY1MDMzMzU0OX0.o6bAVuuOl4ByHvi3IjWwJzdme_ueuCWlewy4UF9ZyqX3DgU2N7N2ZxvUupL49IuWx6W04f9R_gu5En6vE5GFgxZggPjKiHJI8sjuyRTymwbxVz8HYk65LbfEHlw5fElNZAYCjKTaj8zqIrr7lk1anSqW3uowN_g78cSB2ByokSZD9fk5mxzg35DFw9cUENfOI_HTquAvad7CW4mfSeSImzj-bChrg6eI-71gW6PpN5L23DY-RwgUqZonGRvmMwmwlBh-Y26moxuUrJK-e4ygoOWPl0g3An_iHu4Vo-AuD0kUc84htaHQx5ir29Fsy8n-rKYdZyoX-hh4j4H3_IVYRA"}
+Park Names: 
+
+- Kipling Parkette; 7550 kipling avenue, woodbridge, ON
+- Smithfield Park; 173 Mt Olive Dr, Etobicoke, ON 
+- Waterfront Neighbourhood Centre; 627 Queens Quay W, Toronto, ON M5V 3G3
+- David Crombie Park Basketball Court; 115 Scadding Ave, Toronto, ON M5A 4H8
+- Underpass Park; 29 Lower River Street, Toronto, ON M5A 1M6
+- Flagstaff Park; 42 Mercury Rd, Etobicoke, ON M9W 3H5
+- Indian Line Park; 655 HUMBERWOOD BLVD, Toronto, ON
+- Summerlea Park; 2 Arcot Blvd, Toronto, ON
+- Firgrove Park; 254 Firgrove Crescent, North York, ON M3N 1K8
+- Stanley Greene Park; Stanley Greene Blvd, Toronto, ON M3K
+- Irving W. Chapley Park; 205 Wilmington Ave, North York, ON M3H 6B3
+- McNicoll Park; 215 McNicoll Ave, North York, ON
+- Sanwood Park; 20 Sanwood Blvd, Scarborough, ON M1V 0A4
+- Confederation Park; 250 Dolly Varden Blvd, Scarborough, ON M1H 2W5
+- MacGregor Playground; 346 LANSDOWNE AVE 
+- Jack Goodlad Park; 929 Kennedy Rd, Scarborough, ON M1K 2E9
+- Ramsden Park; 1020 Yonge St & Ramsden Park Rd, Toronto, ON M4W 1P7
+- Christie Pits Park; 750 Bloor St W, Toronto, ON M6G 3K4
+- Earlscourt Park; 1200 LANSDOWNE AVE 
+- Ourland Park; 36 Ourland Ave, Etobicoke, ON M8Z 4E1
+- Paul Coffey Park; 3430 Derry Rd E, Mississauga, ON L4T 1A9
+- Regent Park Athletic Grounds; 480 Shuter St, Toronto, ON M5A 3K1
 
 
-
-
-
+TODO: 
+  - save park names and add to Event-Table 
+    - remove soccer/activity-type; basketball only for first iteration 
+  - **ensure the errors for current signup in app is good before continuing... 
+  - implement the remaining CRUD (no update; just retrieve, delete, create) + comments
+    - ^**ensure user-checks are good 
 
 
 

@@ -8,13 +8,15 @@ class UserProfile(models.Model):
   first_name = models.CharField(max_length=1000)
   last_name = models.CharField(max_length=1000)
   full_name = models.CharField(max_length=1000)
-  email = models.EmailField()
+  email = models.EmailField()  
   profile_picture_url = models.URLField()
 
 
 class EventDetail(models.Model):
   event_title = models.CharField(max_length=1000)
-  activity_type = models.CharField(max_length=1000)
+  # activity_type = models.CharField(max_length=1000)
+  park_name = models.CharField(max_length=1000)
+  park_address = models.CharField(max_length=2000)
   event_description = models.TextField()
   timestamp_created = models.DateField(auto_now_add=True)
   event_date = models.DateField()
