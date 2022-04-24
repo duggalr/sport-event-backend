@@ -9,7 +9,7 @@ import json
 from django.http import JsonResponse
 
 from . import utils
-from .models import UserProfile, EventDetail, UserGoingEvent
+from .models import UserProfile, EventDetail, UserGoingEvent, EventComments, UserNotifications
 
 
 
@@ -55,6 +55,37 @@ reverse_time_mapping = {v: k for k, v in time_mapping.items()}
 
 
 
+def validate_user(json_data):
+  if 'idToken' in json_data:
+    user_tok = json_data['idToken']
+    valid, user_data = utils.new_google_validate_token(user_tok)
+    if valid: 
+      user_google_id = user_data['sub']
+      user_objects = UserProfile.objects.filter(google_profile_id=user_google_id)
+      if len(user_objects) >=0 : # TODO: change this to just 0
+        return True, user_objects[0] # TODO: change
+
+  return False, None
+
+
+@csrf_exempt
+@require_POST
+def update_user_device_token(request):
+  try:
+    json_data = json.loads(request.body)
+    valid_user, user_obj = validate_user(json_data)
+    if valid_user:
+      tok = json_data['userDeviceToken']
+      user_obj.phone_device_token = tok
+      user_obj.save()
+      return JsonResponse({'success': True})
+    else:
+      return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+  
+  except:
+    return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+
 # TODO: obviously the csrf_exempt needs to be replaced
 @csrf_exempt
 @require_POST
@@ -89,6 +120,8 @@ def auth_signup(request):
           user_profile_pic_url = user_data['picture']
           user_first_name = user_data['given_name']
           user_last_name = user_data['family_name']
+
+          # TODO: get/save device-tok
 
           u = UserProfile.objects.create(
             google_profile_id=user_google_id,
@@ -201,6 +234,15 @@ def get_events(request):
     st_orig_event_time = orig_event_time.strftime("%H:%M")
     event_time_st = reverse_time_mapping[st_orig_event_time] + 'PM'
 
+    event_comments = EventComments.objects.filter(event_obj=ev_obj)
+    event_comments_list = []
+    for ec_obj in event_comments:
+      event_comments_list.append({
+        'user_full_name': ec_obj.user_obj.full_name,
+        'user_profile_pic': ec_obj.user_obj.profile_picture_url,
+        'comment': ec_obj.comment_text
+        })
+
     final_di = {
       'event_id': ev_obj.id,
       'event_name': ev_obj.event_title.capitalize(), 
@@ -209,11 +251,11 @@ def get_events(request):
       'park_address': ev_obj.park_address,
       'event_date': ev_obj.event_date,
       'event_time': event_time_st,
-      'user_going_list': user_going_list
+      'user_going_list': user_going_list,
+      'user_event_comments': event_comments_list
     }
     final_list.append(final_di)
     event_id_dict[ev_obj.id] = final_di
-
 
   try:
     json_data = json.loads(request.body) 
@@ -331,6 +373,63 @@ def delete_event(request):
   
   except:
     return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+
+
+@csrf_exempt
+@require_POST
+def create_comment(request):
+  try:
+    json_data = json.loads(request.body) 
+    print('json-event-form:', json_data)
+
+    if 'access_token' in json_data:
+      user_access_token = json_data['access_token']
+      access_token_res = utils.get_user_info(user_access_token)
+
+      print('at-res:', access_token_res)
+
+      if 'error' not in access_token_res:
+        print('at-res-second...')
+        # just assuming all the required fields in request
+        user_profile_id = access_token_res['sub']
+        user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
+ 
+        if len(user_objects) >= 1: # TODO: fix this (abstract out to single function call)
+          print('at-res-third...')
+          user_comment = json_data['comment']
+          event_id = json_data['event_id']
+          user_obj = user_objects[0]
+          print(user_obj)
+
+          event_objects = EventDetail.objects.filter(id=event_id)
+          print('event-id:', event_id, event_objects)
+
+          if len(event_objects) >= 1: # TODO: fix this; should be 1
+            print('at-res-fourth...')
+            event_obj = event_objects[0]
+
+            print('saving comment...')
+
+            ec = EventComments.objects.create(
+              comment_text=user_comment,
+              user_obj=user_obj,
+              event_obj=event_obj
+            )
+            ec.save()
+            
+            return JsonResponse({'success': True})
+
+      # else: 
+      #   return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+  except:
+    return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+
+
+
+
 
 
 

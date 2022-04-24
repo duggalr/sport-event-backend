@@ -1,3 +1,4 @@
+from pyexpat import model
 from django.db import models
 
 
@@ -10,6 +11,7 @@ class UserProfile(models.Model):
   full_name = models.CharField(max_length=1000)
   email = models.EmailField()  
   profile_picture_url = models.URLField()
+  phone_device_token = models.CharField(max_length=1000)
 
 
 class EventDetail(models.Model):
@@ -26,6 +28,13 @@ class EventDetail(models.Model):
 
 class UserGoingEvent(models.Model):
   timestamp_created = models.DateField(auto_now_add=True)
+  user_obj = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+  event_obj = models.ForeignKey(EventDetail, on_delete=models.CASCADE)
+
+
+class EventComments(models.Model):
+  timestamp_created = models.DateField(auto_now_add=True)
+  comment_text = models.TextField()
   user_obj = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
   event_obj = models.ForeignKey(EventDetail, on_delete=models.CASCADE)
 
