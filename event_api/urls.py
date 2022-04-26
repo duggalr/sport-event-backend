@@ -13,8 +13,14 @@ urlpatterns = [
   path('user_attending_event', views.user_attending_event, name='user_attending_event'),
   
   path('create_comment', views.create_comment, name='create_comment'),
+  
+  path('get_user_profile_info', views.get_user_profile_info, name='get_user_profile_info'),
+
+  path('fetch_comments', views.fetch_comments, name='fetch_comments'),
 
 ]
+
+
 
 
 

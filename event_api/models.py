@@ -11,7 +11,8 @@ class UserProfile(models.Model):
   full_name = models.CharField(max_length=1000)
   email = models.EmailField()  
   profile_picture_url = models.URLField()
-  phone_device_token = models.CharField(max_length=1000)
+  phone_device_token = models.CharField(max_length=1000, default='')
+
 
 
 class EventDetail(models.Model):

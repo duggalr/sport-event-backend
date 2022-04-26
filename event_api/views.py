@@ -9,7 +9,7 @@ import json
 from django.http import JsonResponse
 
 from . import utils
-from .models import UserProfile, EventDetail, UserGoingEvent, EventComments, UserNotifications
+from .models import UserProfile, EventDetail, UserGoingEvent, EventComments
 
 
 
@@ -56,16 +56,34 @@ reverse_time_mapping = {v: k for k, v in time_mapping.items()}
 
 
 def validate_user(json_data):
-  if 'idToken' in json_data:
-    user_tok = json_data['idToken']
-    valid, user_data = utils.new_google_validate_token(user_tok)
-    if valid: 
-      user_google_id = user_data['sub']
-      user_objects = UserProfile.objects.filter(google_profile_id=user_google_id)
-      if len(user_objects) >=0 : # TODO: change this to just 0
+  # if 'idToken' in json_data:
+  #   user_tok = json_data['idToken']
+  #   valid, user_data = utils.new_google_validate_token(user_tok)
+  #   if valid: 
+  #     user_google_id = user_data['sub']
+  #     user_objects = UserProfile.objects.filter(google_profile_id=user_google_id)
+  #     if len(user_objects) >=0 : # TODO: change this to just 0
+  #       return True, user_objects[0] # TODO: change
+
+  # return False, None
+
+  if 'access_token' in json_data:
+    user_access_token = json_data['access_token']
+    access_token_res = utils.get_user_info(user_access_token)
+
+    print('at-res:', access_token_res)
+
+    if 'error' not in access_token_res:
+      print('at-res-second...')
+      # just assuming all the required fields in request
+      user_profile_id = access_token_res['sub']
+      user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
+
+      if len(user_objects) >= 1: # TODO: fix this (abstract out to single function call)
         return True, user_objects[0] # TODO: change
 
   return False, None
+
 
 
 @csrf_exempt
@@ -96,22 +114,11 @@ def auth_signup(request):
   """
   try: 
     json_data = json.loads(request.body) 
-    # print('json-data:', json_data)
+
     if 'idToken' in json_data:
       user_tok = json_data['idToken']
       valid, user_data = utils.new_google_validate_token(user_tok)
       if valid: 
-        # (True, {
-        #   'iss': 'https://accounts.google.com', 
-        #   'azp': '770095547736-6g0e7nmfj72gki4pieu9v4d3si7p55m7.apps.googleusercontent.com', 
-        #   'aud': '770095547736-7kq0ent6qtcpu1rf731bkvhmsc7cpg46.apps.googleusercontent.com', 
-        #   'sub': '115871519642305824560', 
-        #   'email': 'duggalr42@gmail.com', 
-        #   'email_verified': True, 'name': 'Rahul Duggal', 
-        #   'picture': 'https://lh3.googleusercontent.com/a/AATXAJwFjGR2J-5lAvvx633F9BwuA4W7kX1u0sbm-T65=s96-c', 
-        #   'given_name': 'Rahul', 'family_name': 'Duggal', 'locale': 'en', 'iat': 1650476385, 'exp': 1650479985})
-
-        # TODO: ensure google_profile_id not in DB already
         user_google_id = user_data['sub']
         user_objects = UserProfile.objects.filter(google_profile_id=user_google_id)
         if len(user_objects) >=0 : # TODO: change this to just 0
@@ -120,8 +127,7 @@ def auth_signup(request):
           user_profile_pic_url = user_data['picture']
           user_first_name = user_data['given_name']
           user_last_name = user_data['family_name']
-
-          # TODO: get/save device-tok
+          user_device_token = user_data['user_device_token']
 
           u = UserProfile.objects.create(
             google_profile_id=user_google_id,
@@ -129,9 +135,11 @@ def auth_signup(request):
             last_name=user_last_name,
             full_name=user_full_name,
             email=user_email,
-            profile_picture_url=user_profile_pic_url
+            profile_picture_url=user_profile_pic_url,
+            phone_device_token=user_device_token
           )
           u.save()
+
           return JsonResponse({'success': True})
 
         else: 
@@ -178,10 +186,6 @@ def create_event(request):
           time_str_repres = time_mapping[event_time]
           time_dt_repres = datetime.datetime.strptime(time_str_repres, '%H:%M').time()
 
-          # TODO:
-            # on create event, need to create a state in react-native as this is the only way new data will show in app
-              # how will everyone have 'new/updated-list' of events though?
-
           ed = EventDetail.objects.create(
             event_title = event_title,
             park_name = park_name,
@@ -193,11 +197,11 @@ def create_event(request):
           )
           ed.save()
 
-          ug = UserGoingEvent.objects.create(
-            user_obj = user_objects[0],
-            event_obj = ed
-          )
-          ug.save()
+          # ug = UserGoingEvent.objects.create(
+          #   user_obj = user_objects[0],
+          #   event_obj = ed
+          # )
+          # ug.save()
 
           return JsonResponse({'success': True})
 
@@ -218,11 +222,13 @@ def create_event(request):
 @csrf_exempt
 @require_POST
 def get_events(request):
+  today = datetime.datetime.today()
 
-  event_objects = EventDetail.objects.all()
+  event_objects = EventDetail.objects.filter(event_date__gte=today).order_by('event_date')
   user_going_objects = UserGoingEvent.objects.all()
 
   event_id_dict = {}
+  event_id_comment_dict = {}
   final_list = []
   for ev_obj in event_objects:
     user_going_objects = UserGoingEvent.objects.filter(event_obj=ev_obj)
@@ -241,7 +247,7 @@ def get_events(request):
         'user_full_name': ec_obj.user_obj.full_name,
         'user_profile_pic': ec_obj.user_obj.profile_picture_url,
         'comment': ec_obj.comment_text
-        })
+        })    
 
     final_di = {
       'event_id': ev_obj.id,
@@ -252,10 +258,11 @@ def get_events(request):
       'event_date': ev_obj.event_date,
       'event_time': event_time_st,
       'user_going_list': user_going_list,
-      'user_event_comments': event_comments_list
+      'user_event_comments': event_comments_list,
     }
     final_list.append(final_di)
     event_id_dict[ev_obj.id] = final_di
+    event_id_comment_dict[ev_obj.id] = event_comments_list
 
   try:
     json_data = json.loads(request.body) 
@@ -294,13 +301,16 @@ def get_events(request):
             # user_created_events_dict[uc_event.user_obj.id] = uce_di
 
           print('user-created/going-events:', user_going_list, user_created_events_list)
+          print('event-id-comment-list:', event_id_comment_dict)
 
           return JsonResponse({
             'data': final_list, 
             'event_id_dict': [event_id_dict], 
+            'event_id_comment_dict': [event_id_comment_dict],
             'user_event_going_list': [user_going_list],
             'user_created_event_list': [user_created_events_list]
           })
+          # TODO: fix the comment issue
 
   except:
     print('final-list:', {'data': final_list, 'event_id_dict': [event_id_dict], 'user_event_going_list': [], 'user_created_event_list': []})
@@ -308,6 +318,7 @@ def get_events(request):
     return JsonResponse({
       'data': final_list, 
       'event_id_dict': [event_id_dict], 
+      'event_id_comment_dict': [event_id_comment_dict],
       'user_event_going_list': [[]],
       'user_created_event_list': [[]]
     })
@@ -324,26 +335,42 @@ def user_attending_event(request):
     json_data = json.loads(request.body) 
     print('json-event-form:', json_data)
 
-    if 'access_token' in json_data:
-      user_access_token = json_data['access_token']
-      access_token_res = utils.get_user_info(user_access_token)
-      if 'error' not in access_token_res:
-        # just assuming all the required fields in request
-        user_profile_id = access_token_res['sub']
-        user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
+    valid_user, user_obj = validate_user(json_data)
+    if valid_user:
+      event_id = json_data['event_id']
+      event_objects = EventDetail.objects.filter(id=event_id)
+      print('uae-valid-user...')
+      if len(event_objects) == 1: # TODO: verify this user is not already going to this event!
+        print('saving usergoingevent...')
+        # uge = UserGoingEvent.objects.create(
+        #   user_obj=user_obj,
+        #   event_obj=event_objects[0]
+        # )
+        # uge.save()
+        
+        return JsonResponse({'success': True})
+
+
+    # if 'access_token' in json_data:
+    #   user_access_token = json_data['access_token']
+    #   access_token_res = utils.get_user_info(user_access_token)
+    #   if 'error' not in access_token_res:
+    #     # just assuming all the required fields in request
+    #     user_profile_id = access_token_res['sub']
+    #     user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
  
-        if len(user_objects) == 1:
-          event_id = json_data['event_id']
-          event_objects = EventDetail.objects.filter(id=event_id)
+    #     if len(user_objects) == 1:
+    #       event_id = json_data['event_id']
+    #       event_objects = EventDetail.objects.filter(id=event_id)
  
-          if len(event_objects) == 1: # TODO: verify this user is not already going to this event! 
-            uge = UserGoingEvent.objects.create(
-              user_obj=user_objects[0],
-              event_obj=event_objects[0]
-            )
-            uge.save()
+    #       if len(event_objects) == 1: # TODO: verify this user is not already going to this event! 
+    #         uge = UserGoingEvent.objects.create(
+    #           user_obj=user_objects[0],
+    #           event_obj=event_objects[0]
+    #         )
+    #         uge.save()
             
-            return JsonResponse({'success': True})
+    #         return JsonResponse({'success': True})
 
   except:
     return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
@@ -428,7 +455,57 @@ def create_comment(request):
 
 
 
+@csrf_exempt
+@require_POST
+def get_user_profile_info(request):
+  try:
+    json_data = json.loads(request.body) 
+    print('json-event-form:', json_data)
+    valid_user, user_obj = validate_user(json_data)
+    if valid_user:
+      user_profile_info = {
+        'success': True,
+        'data': {
+          'name': user_obj.full_name,
+          'user_profile_pic': user_obj.profile_picture_url,
+        }
+      }
+      return JsonResponse(user_profile_info)
 
+    else: 
+      return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+  except: 
+    return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+
+
+@csrf_exempt
+@require_POST
+def fetch_comments(request):
+  try:
+    json_data = json.loads(request.body) 
+    if 'event_id' in json_data:
+      event_id = json_data['event_id']
+      event_objects = EventDetail.objects.filter(id=event_id)
+      if len(event_objects) > 0: 
+        comments_objects = EventComments.objects.filter(event_obj=event_objects[0])
+        event_comments_list = []
+        for ec_obj in comments_objects:
+          event_comments_list.append({
+            'user_full_name': ec_obj.user_obj.full_name,
+            'user_profile_pic': ec_obj.user_obj.profile_picture_url,
+            'comment': ec_obj.comment_text
+            })
+
+        print('event-comments-data:', event_comments_list)
+        return JsonResponse({'success': True, 'data': event_comments_list})
+
+    else: 
+      return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+  except: 
+    return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
 
 
