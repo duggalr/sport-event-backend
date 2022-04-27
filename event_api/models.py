@@ -3,7 +3,6 @@ from django.db import models
 
 
 
-# "user": {"email": "duggalr42@gmail.com", "familyName": "Duggal", "givenName": "Rahul", "id": "115871519642305824560", "name": "Rahul Duggal", "photo": "https://lh3.googleusercontent.com/a/AATXAJwFjGR2J-5lAvvx633F9BwuA4W7kX1u0sbm-T65=s96-c"}
 class UserProfile(models.Model):
   google_profile_id = models.CharField(max_length=1000)  
   first_name = models.CharField(max_length=1000)
@@ -12,7 +11,6 @@ class UserProfile(models.Model):
   email = models.EmailField()  
   profile_picture_url = models.URLField()
   phone_device_token = models.CharField(max_length=1000, default='')
-
 
 
 class EventDetail(models.Model):
@@ -40,15 +38,7 @@ class EventComments(models.Model):
   event_obj = models.ForeignKey(EventDetail, on_delete=models.CASCADE)
 
 
-# EventDetail.objects.create(
-#   event_title='testing two',
-#   park_name='David Crombie Park Basketball Court',
-#   park_address='testing',
-#   event_description='Tesing desc one. Tesing desc one. Tesing desc one. Tesing desc one. Tesing desc one.',
-#   event_date='2022-01-01',
-#   event_time='18:00',
-#   user_obj=user_objects[0]  
-# )
+
 
 
 

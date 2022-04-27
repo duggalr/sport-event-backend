@@ -1,6 +1,15 @@
+import time
+import json
+from datetime import timedelta
+from uuid import uuid4
+from firebase_admin import messaging, credentials, initialize_app
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
+
+service_account_fp = '/Users/rahul/Documents/main/projects/personal_learning_projects/event_backend/firebase_service_account/proximity-personal-firebase-adminsdk-ifj03-a3b8b4fe38.json'
+cred = credentials.Certificate(service_account_fp)
+initialize_app(cred)
 
 
 def new_google_validate_token(token):
@@ -32,9 +41,27 @@ def get_user_info(user_tok):
 # get_user_info(tok)
 
 
+# TODO: need to 'remove hardcoded-fp'
+def send_user_notification(user_tokens):  
+  # user_tokens = ['dGziePteRsKH2GWGWp6yeM:APA91bES_afjuthXSIzI1E4KhjrWDt8NFy61dUeNZ8JocEmdkqH2Wgjo8GyGvwaG6AcOOAHHmkg_q5r-JAtgsoa4d46tvl1-cvzhjICvFpf5rQ7ntd0tbu6atQdQiADd19Ccq94rtHRJ']
+  mc_message_obj = messaging.MulticastMessage(
+    tokens = user_tokens,
+    data = {
+      "notifee": json.dumps({
+        "title": 'New Run Posted!',
+        "body": 'Check out the New Basketball Run Posted!',
+        "android": {
+          "channelId": 'default',
+          "smallIcon": 'ic_stat_sports_basketball',
+        },
+      }),
+    }
+  )
+  messaging.send_multicast(mc_message_obj)
 
 
-
+# user_tokens = ['dGziePteRsKH2GWGWp6yeM:APA91bES_afjuthXSIzI1E4KhjrWDt8NFy61dUeNZ8JocEmdkqH2Wgjo8GyGvwaG6AcOOAHHmkg_q5r-JAtgsoa4d46tvl1-cvzhjICvFpf5rQ7ntd0tbu6atQdQiADd19Ccq94rtHRJ']
+# send_user_notification(user_tokens)
 
 
 

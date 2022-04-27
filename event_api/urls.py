@@ -18,7 +18,10 @@ urlpatterns = [
 
   path('fetch_comments', views.fetch_comments, name='fetch_comments'),
 
+  path('unattend_event', views.unattend_event, name='unattend_event'),
+
 ]
+
 
 
 
