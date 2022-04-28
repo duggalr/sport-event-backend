@@ -97,6 +97,12 @@ def update_user_device_token(request):
       tok = json_data['userDeviceToken']
       user_obj.phone_device_token = tok
       user_obj.save()
+ 
+      # TODO: figure out why the notification to the device (both emulator and personal) is not sending...
+        # message shows in logs but notification is not displaying...
+      # print('sending-user-notif...')
+      # utils.send_user_notification([tok])
+
       return JsonResponse({'success': True})
     else:
       return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
@@ -119,16 +125,22 @@ def auth_signup(request):
     if 'idToken' in json_data:
       user_tok = json_data['idToken']
       valid, user_data = utils.new_google_validate_token(user_tok)
+      print('validation:', valid, user_data)
+
       if valid: 
         user_google_id = user_data['sub']
         user_objects = UserProfile.objects.filter(google_profile_id=user_google_id)
-        if len(user_objects) >=0 : # TODO: change this to just 0
+        print(user_objects, len(user_objects))
+        
+        if len(user_objects) == 0:
           user_email = user_data['email']
           user_full_name = user_data['name']
           user_profile_pic_url = user_data['picture']
           user_first_name = user_data['given_name']
           user_last_name = user_data['family_name']
-          user_device_token = user_data['user_device_token']
+          # user_device_token = json_data['user_device_token']
+
+          print('saving user profile')
 
           u = UserProfile.objects.create(
             google_profile_id=user_google_id,
@@ -137,7 +149,7 @@ def auth_signup(request):
             full_name=user_full_name,
             email=user_email,
             profile_picture_url=user_profile_pic_url,
-            phone_device_token=user_device_token
+            # phone_device_token=user_device_token
           )
           u.save()
 
@@ -208,13 +220,13 @@ def create_event(request):
         notification_device_tokens = []
         all_user_objects = UserProfile.objects.all()
         for a_user_obj in all_user_objects:
-          if a_user_obj.phone_device_token != '':
+          if a_user_obj.phone_device_token != '' and a_user_obj != user_objects[0]:
             notification_device_tokens.append(a_user_obj.phone_device_token)
           # if a_user_obj != user_objects[0]:
           #   notification_device_tokens.append(a_user_obj.phone_device_token)
 
-        print('all-device-tokens:', notification_device_tokens)
-        utils.send_user_notification(notification_device_tokens)
+        # print('all-device-tokens:', notification_device_tokens)
+        # utils.send_user_notification(notification_device_tokens, type='create_event')
 
         return JsonResponse({'success': True})
 
@@ -485,6 +497,10 @@ def create_comment(request):
               event_obj=event_obj
             )
             ec.save()
+
+            # notification_device_tokens = [user_obj.phone_device_token]
+            # print('all-device-tokens:', notification_device_tokens)
+            # utils.send_user_notification(notification_device_tokens, type='create_comment')
             
             return JsonResponse({'success': True})
 
