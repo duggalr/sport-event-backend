@@ -49,22 +49,7 @@ def get_user_info(user_tok):
 
 
 def send_user_notification(user_tokens, type):  
-  # user_tokens = ['dGziePteRsKH2GWGWp6yeM:APA91bES_afjuthXSIzI1E4KhjrWDt8NFy61dUeNZ8JocEmdkqH2Wgjo8GyGvwaG6AcOOAHHmkg_q5r-JAtgsoa4d46tvl1-cvzhjICvFpf5rQ7ntd0tbu6atQdQiADd19Ccq94rtHRJ']
   try:
-    # mc_message_obj = messaging.MulticastMessage(
-    #   tokens = user_tokens,
-    #   data = {
-    #     "notifee": json.dumps({
-    #       "title": 'New Run Posted!',
-    #       "body": 'Check out the New Basketball Run Posted!',
-    #       "android": {
-    #         "channelId": 'default',
-    #         "smallIcon": 'ic_stat_sports_basketball',
-    #       },
-    #     }),
-    #   }
-    # )
-    
     mc_message_obj = messaging.MulticastMessage(
       tokens = user_tokens,
       data = {
@@ -76,15 +61,6 @@ def send_user_notification(user_tokens, type):
     pass
 
 
-# user_tokens = ['dEz6au1XTUmkFR8EtmtEIM:APA91bEIvEjwjxWqRwcU7KMv-koVCol_npYg8xIOtjglbxNOBW6L5_Llv-A3ZjL_mnS4DlYcoAq4clmQGqBJfsnqmHrO6TaZPvJ5QgCCWCmKzgs4v3K6DFOeuDdOIgEKs28RVrb070n3']
-# user_tokens = [
-#   'dEz6au1XTUmkFR8EtmtEIM:APA91bEIvEjwjxWqRwcU7KMv-koVCol_npYg8xIOtjglbxNOBW6L5_Llv-A3ZjL_mnS4DlYcoAq4clmQGqBJfsnqmHrO6TaZPvJ5QgCCWCmKzgs4v3K6DFOeuDdOIgEKs28RVrb070n3',
-#   'cxAFIKMGTY-pYtLvaQ3tBC:APA91bG_WkaS_YLfRcxfR4YMaBxX526-Q9Cyn-Ax0Wfy5xFM4cAZvwO6qqggbDtkF9Z9mWRUhb9bgYvBH0NMF27KyMbv_j_L6jK_h3VJUj4nvWKfj9GsSy9newaWL5dI2Crcm1gIwE9p'
-# ]
-# send_user_notification(user_tokens, type="event_type") 
-
-# user_tokens = ['dGziePteRsKH2GWGWp6yeM:APA91bES_afjuthXSIzI1E4KhjrWDt8NFy61dUeNZ8JocEmdkqH2Wgjo8GyGvwaG6AcOOAHHmkg_q5r-JAtgsoa4d46tvl1-cvzhjICvFpf5rQ7ntd0tbu6atQdQiADd19Ccq94rtHRJ']
-# send_user_notification(user_tokens)
 
 
 

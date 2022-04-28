@@ -57,31 +57,16 @@ reverse_time_mapping = {v: k for k, v in time_mapping.items()}
 
 
 def validate_user(json_data):
-  # if 'idToken' in json_data:
-  #   user_tok = json_data['idToken']
-  #   valid, user_data = utils.new_google_validate_token(user_tok)
-  #   if valid: 
-  #     user_google_id = user_data['sub']
-  #     user_objects = UserProfile.objects.filter(google_profile_id=user_google_id)
-  #     if len(user_objects) >=0 : # TODO: change this to just 0
-  #       return True, user_objects[0] # TODO: change
-
-  # return False, None
-
   if 'access_token' in json_data:
     user_access_token = json_data['access_token']
     access_token_res = utils.get_user_info(user_access_token)
 
-    print('at-res:', access_token_res)
-
     if 'error' not in access_token_res:
-      print('at-res-second...')
-      # just assuming all the required fields in request
-      user_profile_id = access_token_res['sub']
-      user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
-
-      if len(user_objects) >= 1: # TODO: fix this (abstract out to single function call)
-        return True, user_objects[0] # TODO: change
+      if 'sub' in access_token_res:
+        user_profile_id = access_token_res['sub']
+        user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
+        if len(user_objects) == 1:
+          return True, user_objects[0] 
 
   return False, None
 
@@ -97,12 +82,6 @@ def update_user_device_token(request):
       tok = json_data['userDeviceToken']
       user_obj.phone_device_token = tok
       user_obj.save()
- 
-      # TODO: figure out why the notification to the device (both emulator and personal) is not sending...
-        # message shows in logs but notification is not displaying...
-      # print('sending-user-notif...')
-      # utils.send_user_notification([tok])
-
       return JsonResponse({'success': True})
     else:
       return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
@@ -111,7 +90,6 @@ def update_user_device_token(request):
     return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
 
-# TODO: obviously the csrf_exempt needs to be replaced
 @csrf_exempt
 @require_POST
 def auth_signup(request):
@@ -125,12 +103,10 @@ def auth_signup(request):
     if 'idToken' in json_data:
       user_tok = json_data['idToken']
       valid, user_data = utils.new_google_validate_token(user_tok)
-      print('validation:', valid, user_data)
 
       if valid: 
         user_google_id = user_data['sub']
         user_objects = UserProfile.objects.filter(google_profile_id=user_google_id)
-        print(user_objects, len(user_objects))
         
         if len(user_objects) == 0:
           user_email = user_data['email']
@@ -138,9 +114,7 @@ def auth_signup(request):
           user_profile_pic_url = user_data['picture']
           user_first_name = user_data['given_name']
           user_last_name = user_data['family_name']
-          # user_device_token = json_data['user_device_token']
-
-          print('saving user profile')
+          user_device_token = json_data['user_device_token']
 
           u = UserProfile.objects.create(
             google_profile_id=user_google_id,
@@ -149,7 +123,7 @@ def auth_signup(request):
             full_name=user_full_name,
             email=user_email,
             profile_picture_url=user_profile_pic_url,
-            # phone_device_token=user_device_token
+            phone_device_token=user_device_token
           )
           u.save()
 
@@ -172,75 +146,52 @@ def auth_signup(request):
 @csrf_exempt
 @require_POST
 def create_event(request):
-  # try:
-  json_data = json.loads(request.body) 
-  print('json-event-form:', json_data)
+  try:
+    json_data = json.loads(request.body) 
+    valid_user, user_obj = validate_user(json_data)
 
-#  {'event_title': 'Testing one', 'event_description': 'Sbbdjd xhxix', 'park_name': 'Indian Line Park', 'event_date': '2022-04-18T20:10:16.478Z', 'event_time': '6:00', 'access_token': 'ya29.A0ARrdaM-2hlXy4pxvCYIfCViQypx6g9N6QcaU0SW_eMAqNOc-o34rdoJhj2mVk7wViKsaijhH50eqhxNvojthDHBluj42GSue1AOuvDKoQ5s6ktmo_Jh_TjA5ZcZswSB9ac2p035IO1_3xseKSHWDcJ2lz09qdA'}
-  if 'access_token' in json_data:
-    user_access_token = json_data['access_token']
-    access_token_res = utils.get_user_info(user_access_token)
-    print('access token check...')
+    if valid_user:  
+      event_title = json_data['event_title']
+      event_desc = json_data['event_description']
+      park_name = json_data['park_name']
+      park_address = park_address_info[park_name]
+      event_date = json_data['event_date'].split('T')[0]
+      event_time = json_data['event_time']
+      time_str_repres = time_mapping[event_time]
+      time_dt_repres = datetime.datetime.strptime(time_str_repres, '%H:%M').time()
 
-    if 'error' not in access_token_res:
-      # just assuming all the required fields in request
-      user_profile_id = access_token_res['sub']
-      user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
+      ed = EventDetail.objects.create(
+        event_title = event_title,
+        park_name = park_name,
+        park_address = park_address,
+        event_description = event_desc,
+        event_date = event_date,
+        event_time = time_dt_repres,
+        user_obj = user_obj
+      )
+      ed.save()
 
-      print('access token error...', len(user_objects))
-      
-      if len(user_objects) >= 1: # TODO: fix this! 
-        event_title = json_data['event_title']
-        event_desc = json_data['event_description']
-        park_name = json_data['park_name']
-        park_address = park_address_info[park_name]
-        event_date = json_data['event_date'].split('T')[0]
-        event_time = json_data['event_time']
-        time_str_repres = time_mapping[event_time]
-        time_dt_repres = datetime.datetime.strptime(time_str_repres, '%H:%M').time()
+      ug = UserGoingEvent.objects.create(
+        user_obj = user_obj,
+        event_obj = ed
+      )
+      ug.save()
+        
+      # get all user-device-tokens except for current user
+      notification_device_tokens = [] 
+      all_user_objects = UserProfile.objects.all()
+      for a_user_obj in all_user_objects:
+        if a_user_obj.phone_device_token != '' and a_user_obj != user_obj:
+          notification_device_tokens.append(a_user_obj.phone_device_token)
 
-        ed = EventDetail.objects.create(
-          event_title = event_title,
-          park_name = park_name,
-          park_address = park_address,
-          event_description = event_desc,
-          event_date = event_date,
-          event_time = time_dt_repres,
-          user_obj = user_objects[0]
-        )
-        ed.save()
+      utils.send_user_notification(notification_device_tokens, type='create_event')
+      return JsonResponse({'success': True})
 
-        ug = UserGoingEvent.objects.create(
-          user_obj = user_objects[0],
-          event_obj = ed
-        )
-        ug.save()
-
-        # get all user-device-tokens except for current user
-        notification_device_tokens = []
-        all_user_objects = UserProfile.objects.all()
-        for a_user_obj in all_user_objects:
-          if a_user_obj.phone_device_token != '' and a_user_obj != user_objects[0]:
-            notification_device_tokens.append(a_user_obj.phone_device_token)
-          # if a_user_obj != user_objects[0]:
-          #   notification_device_tokens.append(a_user_obj.phone_device_token)
-
-        # print('all-device-tokens:', notification_device_tokens)
-        # utils.send_user_notification(notification_device_tokens, type='create_event')
-
-        return JsonResponse({'success': True})
-
-      else: 
-        return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
-      
-    else:
+    else: 
       return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
-  else: 
+  except: 
     return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
-
-  # except: 
-  #   return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
 
 
@@ -248,7 +199,6 @@ def create_event(request):
 @require_POST
 def get_events(request):
   today = datetime.datetime.today()
-
   event_objects = EventDetail.objects.filter(event_date__gte=today).order_by('event_date')
   user_going_objects = UserGoingEvent.objects.all()
 
@@ -291,55 +241,32 @@ def get_events(request):
 
   try:
     json_data = json.loads(request.body) 
-    print('json-event-form:', json_data)
+    valid_user, user_obj = validate_user(json_data)
 
-#  {'event_title': 'Testing one', 'event_description': 'Sbbdjd xhxix', 'park_name': 'Indian Line Park', 'event_date': '2022-04-18T20:10:16.478Z', 'event_time': '6:00', 'access_token': 'ya29.A0ARrdaM-2hlXy4pxvCYIfCViQypx6g9N6QcaU0SW_eMAqNOc-o34rdoJhj2mVk7wViKsaijhH50eqhxNvojthDHBluj42GSue1AOuvDKoQ5s6ktmo_Jh_TjA5ZcZswSB9ac2p035IO1_3xseKSHWDcJ2lz09qdA'}
-    if 'access_token' in json_data:
-      user_access_token = json_data['access_token']
-      access_token_res = utils.get_user_info(user_access_token)
-      print('access token check...')
+    if valid_user:  
+      user_going_events = UserGoingEvent.objects.filter(user_obj=user_obj)
+      user_created_events = EventDetail.objects.filter(user_obj=user_obj)
 
-      if 'error' not in access_token_res:
-        # just assuming all the required fields in request
-        user_profile_id = access_token_res['sub']
-        user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
+      user_going_list = []
+      user_created_events_list = []
+      for ug_obj in user_going_events:
+        user_going_list.append(ug_obj.event_obj.id)
+      
+      for uc_event in user_created_events:
+        user_created_events_list.append(uc_event.id)
 
-        print('access token error...', len(user_objects))
-        
-        if len(user_objects) >= 1:  # TODO: change this!
-          user_going_events = UserGoingEvent.objects.filter(user_obj=user_objects[0])
-          user_created_events = EventDetail.objects.filter(user_obj=user_objects[0])
+      return JsonResponse({
+        'data': final_list, 
+        'event_id_dict': [event_id_dict], 
+        'event_id_comment_dict': [event_id_comment_dict],
+        'user_event_going_list': [user_going_list],
+        'user_created_event_list': [user_created_events_list]
+      })
 
-          # user_going_dict = {}
-          # user_created_events_dict = {}
-          user_going_list = []
-          user_created_events_list = []
-          for ug_obj in user_going_events:
-            user_going_list.append(ug_obj.event_obj.id)
-            # ug_di = {'user_id': ug_obj.user_obj.id, 'event_id': ug_obj.event_obj.id}
-            # user_going_dict[ug_obj.user_obj.id] = ug_di
-            # user_going_list.append(ug_di)
-          
-          for uc_event in user_created_events:
-            user_created_events_list.append(uc_event.id)
-            # uce_di = {'user_id': uc_event.user_obj.id, 'event_di': uc_event.id}
-            # user_created_events_dict[uc_event.user_obj.id] = uce_di
-
-          print('user-created/going-events:', user_going_list, user_created_events_list)
-          print('event-id-comment-list:', event_id_comment_dict)
-
-          return JsonResponse({
-            'data': final_list, 
-            'event_id_dict': [event_id_dict], 
-            'event_id_comment_dict': [event_id_comment_dict],
-            'user_event_going_list': [user_going_list],
-            'user_created_event_list': [user_created_events_list]
-          })
-          # TODO: fix the comment issue
+    else: 
+      return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
   except:
-    print('final-list:', {'data': final_list, 'event_id_dict': [event_id_dict], 'user_event_going_list': [], 'user_created_event_list': []})
-
     return JsonResponse({
       'data': final_list, 
       'event_id_dict': [event_id_dict], 
@@ -348,9 +275,6 @@ def get_events(request):
       'user_created_event_list': [[]]
     })
 
-  # # print('final-list:', event_id_dict)
-  # return JsonResponse({'data': final_list, 'event_id_dict': [event_id_dict]})
-
 
 
 @csrf_exempt
@@ -358,44 +282,33 @@ def get_events(request):
 def user_attending_event(request):
   try:
     json_data = json.loads(request.body) 
-    print('json-event-form:', json_data)
-
     valid_user, user_obj = validate_user(json_data)
+    
     if valid_user:
       event_id = json_data['event_id']
       event_objects = EventDetail.objects.filter(id=event_id)
-      print('uae-valid-user...')
-      if len(event_objects) == 1: # TODO: verify this user is not already going to this event!
-        print('saving usergoingevent...')
-        uge = UserGoingEvent.objects.create(
-          user_obj=user_obj,
-          event_obj=event_objects[0]
-        )
-        uge.save()
-        
-        return JsonResponse({'success': True})
 
+      if len(event_objects) == 1:
+        # verify this user is not already going to this event!
+        uge_objects = UserGoingEvent.objects.filter(user_obj=user_obj, event_obj=event_objects[0])
 
-    # if 'access_token' in json_data:
-    #   user_access_token = json_data['access_token']
-    #   access_token_res = utils.get_user_info(user_access_token)
-    #   if 'error' not in access_token_res:
-    #     # just assuming all the required fields in request
-    #     user_profile_id = access_token_res['sub']
-    #     user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
- 
-    #     if len(user_objects) == 1:
-    #       event_id = json_data['event_id']
-    #       event_objects = EventDetail.objects.filter(id=event_id)
- 
-    #       if len(event_objects) == 1: # TODO: verify this user is not already going to this event! 
-    #         uge = UserGoingEvent.objects.create(
-    #           user_obj=user_objects[0],
-    #           event_obj=event_objects[0]
-    #         )
-    #         uge.save()
-            
-    #         return JsonResponse({'success': True})
+        if len(uge_objects) == 0:
+          uge = UserGoingEvent.objects.create(
+            user_obj=user_obj,
+            event_obj=event_objects[0]
+          )
+          uge.save()
+
+          return JsonResponse({'success': True})
+
+        else: 
+          return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+      else: 
+        return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+    else: 
+      return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
   except:
     return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
@@ -406,24 +319,29 @@ def user_attending_event(request):
 def unattend_event(request):
   try:
     json_data = json.loads(request.body) 
-    print('json-event-form:', json_data)
-
     valid_user, user_obj = validate_user(json_data)
+
     if valid_user:
       event_id = json_data['event_id']
       event_objects = EventDetail.objects.filter(id=event_id)
-      print('uae-valid-user...')
+
       if len(event_objects) == 1:
         uge_obj = UserGoingEvent.objects.filter(
           user_obj=user_obj,
           event_obj=event_objects[0]
         )
-        print('uge_obj:', uge_obj)
 
-        if len(uge_obj) == 1:  # TODO: change this to just one!
-          print('remove usergoingevent...')
+        if len(uge_obj) == 1: 
           uge_obj[0].delete()
           return JsonResponse({'success': True})
+        else: 
+          return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+      else: 
+        return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+      
+    else: 
+      return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
   except:
     return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
@@ -435,22 +353,24 @@ def unattend_event(request):
 def delete_event(request):
   try:
     json_data = json.loads(request.body) 
-    print('json-event-form:', json_data)
+    valid_user, user_obj = validate_user(json_data)
 
-    if 'access_token' in json_data:
-      user_access_token = json_data['access_token']
-      access_token_res = utils.get_user_info(user_access_token)
-      if 'error' not in access_token_res:
-        # just assuming all the required fields in request
-        user_profile_id = access_token_res['sub']
-        user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
- 
-        if len(user_objects) >= 1: # TODO: fix this (abstract out to single function call)
-          event_id = json_data['event_id']
-          EventDetail.objects.filter(id=event_id).delete()
+    if valid_user:
+      event_id = json_data['event_id']
+      event_objects = EventDetail.objects.filter(id=event_id)
 
+      if len(event_objects) == 1: 
+        event_obj = event_objects[0]
+        if event_obj.user_obj == user_obj:
+          event_obj.delete()
           return JsonResponse({'success': True})
-  
+
+        else: 
+          return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
+    else: 
+      return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+
   except:
     return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
@@ -461,51 +381,33 @@ def delete_event(request):
 def create_comment(request):
   try:
     json_data = json.loads(request.body) 
-    print('json-event-form:', json_data)
+    valid_user, user_obj = validate_user(json_data)
 
-    if 'access_token' in json_data:
-      user_access_token = json_data['access_token']
-      access_token_res = utils.get_user_info(user_access_token)
+    if valid_user:
+       
+      user_comment = json_data['comment']
+      event_id = json_data['event_id']
+      event_objects = EventDetail.objects.filter(id=event_id)
+      if len(event_objects) == 1:
+        event_obj = event_objects[0]
 
-      print('at-res:', access_token_res)
+        ec = EventComments.objects.create(
+          comment_text=user_comment,
+          user_obj=user_obj,
+          event_obj=event_obj
+        )
+        ec.save()
 
-      if 'error' not in access_token_res:
-        print('at-res-second...')
-        # just assuming all the required fields in request
-        user_profile_id = access_token_res['sub']
-        user_objects = UserProfile.objects.filter(google_profile_id=user_profile_id)
- 
-        if len(user_objects) >= 1: # TODO: fix this (abstract out to single function call)
-          print('at-res-third...')
-          user_comment = json_data['comment']
-          event_id = json_data['event_id']
-          user_obj = user_objects[0]
-          print(user_obj)
+        user_who_created_event = event_obj.user_obj  # TODO: just notifying the person who created the event for now...
+        notification_device_tokens = [user_who_created_event.phone_device_token]
+        utils.send_user_notification(notification_device_tokens, type='create_comment')
+        return JsonResponse({'success': True})
 
-          event_objects = EventDetail.objects.filter(id=event_id)
-          print('event-id:', event_id, event_objects)
+      else: 
+        return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
-          if len(event_objects) >= 1: # TODO: fix this; should be 1
-            print('at-res-fourth...')
-            event_obj = event_objects[0]
-
-            print('saving comment...')
-
-            ec = EventComments.objects.create(
-              comment_text=user_comment,
-              user_obj=user_obj,
-              event_obj=event_obj
-            )
-            ec.save()
-
-            # notification_device_tokens = [user_obj.phone_device_token]
-            # print('all-device-tokens:', notification_device_tokens)
-            # utils.send_user_notification(notification_device_tokens, type='create_comment')
-            
-            return JsonResponse({'success': True})
-
-      # else: 
-      #   return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
+    else: 
+      return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
   except:
     return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
@@ -517,8 +419,8 @@ def create_comment(request):
 def get_user_profile_info(request):
   try:
     json_data = json.loads(request.body) 
-    print('json-event-form:', json_data)
     valid_user, user_obj = validate_user(json_data)
+    
     if valid_user:
       user_profile_info = {
         'success': True,
@@ -541,12 +443,15 @@ def get_user_profile_info(request):
 @require_POST
 def fetch_comments(request):
   try:
-    json_data = json.loads(request.body) 
+    json_data = json.loads(request.body)
+    
     if 'event_id' in json_data:
       event_id = json_data['event_id']
       event_objects = EventDetail.objects.filter(id=event_id)
-      if len(event_objects) > 0: 
+
+      if len(event_objects) == 1: 
         comments_objects = EventComments.objects.filter(event_obj=event_objects[0])
+
         event_comments_list = []
         for ec_obj in comments_objects:
           event_comments_list.append({
@@ -555,8 +460,10 @@ def fetch_comments(request):
             'comment': ec_obj.comment_text
             })
 
-        print('event-comments-data:', event_comments_list)
         return JsonResponse({'success': True, 'data': event_comments_list})
+      
+      else: 
+        return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
 
     else: 
       return JsonResponse({'success': False, 'reason': 'invalid data sent.'})
