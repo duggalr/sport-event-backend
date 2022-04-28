@@ -1,5 +1,4 @@
 Park Names: 
-
 - Kipling Parkette; 7550 kipling avenue, woodbridge, ON
 - Smithfield Park; 173 Mt Olive Dr, Etobicoke, ON 
 - Waterfront Neighbourhood Centre; 627 Queens Quay W, Toronto, ON M5V 3G3
@@ -24,12 +23,7 @@ Park Names:
 - Regent Park Athletic Grounds; 480 Shuter St, Toronto, ON M5A 3K1
 
 
-TODO: 
-  - save park names and add to Event-Table 
-    - remove soccer/activity-type; basketball only for first iteration 
-  - **ensure the errors for current signup in app is good before continuing... 
-  - implement the remaining CRUD (no update; just retrieve, delete, create) + comments
-    - ^**ensure user-checks are good 
+
 
 
 
