@@ -2,7 +2,6 @@ from pyexpat import model
 from django.db import models
 
 
-
 class UserProfile(models.Model):
   google_profile_id = models.CharField(max_length=1000)  
   first_name = models.CharField(max_length=1000)
