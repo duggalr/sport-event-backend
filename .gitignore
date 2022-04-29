@@ -2,7 +2,6 @@ t.txt
 db.sqlite3
 
 event_backend/__pycache__
-event_api/migrations
 event_api/__pycache__
 event_api/firebase_test.py
 
