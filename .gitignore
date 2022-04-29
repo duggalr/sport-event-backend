@@ -12,6 +12,4 @@ event_api/firebase_test.py
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
-.ebextensions
-.elasticbeanstalk
 
