@@ -7,3 +7,11 @@ event_api/migrations
 event_api/__pycache__
 event_api/firebase_test.py
 
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+.ebextensions
+.elasticbeanstalk
+
