@@ -1,10 +1,8 @@
 from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
-from django.core.exceptions import ValidationError
 
 import datetime
-import requests
 import json
 from django.http import JsonResponse
 
@@ -114,7 +112,9 @@ def auth_signup(request):
           user_profile_pic_url = user_data['picture']
           user_first_name = user_data['given_name']
           user_last_name = user_data['family_name']
-          user_device_token = json_data['user_device_token']
+          user_device_token = None
+          if 'user_device_token' in json_data:
+            user_device_token = json_data['user_device_token']
 
           u = UserProfile.objects.create(
             google_profile_id=user_google_id,

@@ -24,7 +24,8 @@ SECRET_KEY = '4y@uigq3-%8*@sfi#=wf7^m6q1)5pcur@^1joon4u5!ts0+e09'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'event-backend-env.eba-jqqemta3.ca-central-1.elasticbeanstalk.com']
+# ALLOWED_HOSTS = ['127.0.0.1', 'event-backend-env.eba-jqqemta3.ca-central-1.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
