@@ -184,6 +184,7 @@ def create_event(request):
         if a_user_obj.phone_device_token != '' and a_user_obj != user_obj:
           notification_device_tokens.append(a_user_obj.phone_device_token)
 
+      print('sending notifications too:', notification_device_tokens)
       utils.send_user_notification(notification_device_tokens, type='create_event')
       return JsonResponse({'success': True})
 
@@ -398,8 +399,11 @@ def create_comment(request):
         )
         ec.save()
 
-        user_who_created_event = event_obj.user_obj  # TODO: just notifying the person who created the event for now...
+        # TODO: just notifying the person who created the event for now... 
+          # ensure it's not that person commenting
+        user_who_created_event = event_obj.user_obj  
         notification_device_tokens = [user_who_created_event.phone_device_token]
+        print('sending notifications too:', notification_device_tokens)
         utils.send_user_notification(notification_device_tokens, type='create_comment')
         return JsonResponse({'success': True})
 

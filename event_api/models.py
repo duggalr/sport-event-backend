@@ -2,6 +2,8 @@ from pyexpat import model
 from django.db import models
 
 
+# psql --host=aa1qihnsd8h146k.cxudwm0miu7l.ca-central-1.rds.amazonaws.com --port=5432 --username=rahul --password=Umakant12! --dbname=aa1qihnsd8h146k
+
 class UserProfile(models.Model):
   google_profile_id = models.CharField(max_length=1000)  
   first_name = models.CharField(max_length=1000)
@@ -35,7 +37,6 @@ class EventComments(models.Model):
   comment_text = models.TextField()
   user_obj = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
   event_obj = models.ForeignKey(EventDetail, on_delete=models.CASCADE)
-
 
 
 

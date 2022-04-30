@@ -58,9 +58,6 @@ def send_user_notification(user_tokens, type):
 
 
 
-# TODO: 
-  # push new changes and redeploy backend 
-    # test all the functionality with production API and go from there 
 
 
 
