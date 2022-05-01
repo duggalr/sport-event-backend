@@ -400,13 +400,12 @@ def create_comment(request):
         ec.save()
 
         # TODO: just notifying the person who created the event for now... 
-          # ensure it's not that person commenting
         user_who_created_event = event_obj.user_obj
         if user_who_created_event != user_obj:
           notification_device_tokens = [user_who_created_event.phone_device_token]
           print('sending notifications too:', notification_device_tokens)
           utils.send_user_notification(notification_device_tokens, type='create_comment')
-          
+
         return JsonResponse({'success': True})
 
       else: 
