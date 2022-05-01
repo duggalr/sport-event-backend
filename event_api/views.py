@@ -151,6 +151,7 @@ def create_event(request):
     valid_user, user_obj = validate_user(json_data)
 
     if valid_user:  
+      print('json-data:', json_data)
       event_title = json_data['event_title']
       event_desc = json_data['event_description']
       park_name = json_data['park_name']
@@ -160,6 +161,7 @@ def create_event(request):
       time_str_repres = time_mapping[event_time]
       time_dt_repres = datetime.datetime.strptime(time_str_repres, '%H:%M').time()
 
+      print('saving event')
       ed = EventDetail.objects.create(
         event_title = event_title,
         park_name = park_name,
@@ -171,12 +173,14 @@ def create_event(request):
       )
       ed.save()
 
+      print('saving uge')
       ug = UserGoingEvent.objects.create(
         user_obj = user_obj,
         event_obj = ed
       )
       ug.save()
-        
+      
+      print('attempting notifs')
       # get all user-device-tokens except for current user
       notification_device_tokens = [] 
       all_user_objects = UserProfile.objects.all()
