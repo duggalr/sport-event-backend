@@ -38,6 +38,7 @@ def get_user_info(user_tok):
 
 def send_user_notification(user_tokens, type):  
   try:
+    print('sending msg...')
     mc_message_obj = messaging.MulticastMessage(
       tokens = user_tokens,
       data = {
@@ -45,6 +46,7 @@ def send_user_notification(user_tokens, type):
       }
     )
     messaging.send_multicast(mc_message_obj)
+    print('msg sent...')
   except:
     pass
 
